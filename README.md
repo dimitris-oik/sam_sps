@@ -2,6 +2,7 @@
 
 **Adaptive Polyak step sizes for SAM and USAM — match or beat tuned learning rates and Cosine Annealing, with no $\gamma$ tuning.**
 
+[![PyPI version](https://img.shields.io/pypi/v/sam_sps.svg)](https://pypi.org/project/sam_sps/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
@@ -28,7 +29,11 @@ The package provides a single `torch.optim.Optimizer` subclass — `SAM_SPS` —
 
 ## Installation
 
-From source:
+```bash
+pip install sam_sps
+```
+
+Or from source:
 
 ```bash
 git clone https://github.com/dimitris-oik/sam_sps.git
