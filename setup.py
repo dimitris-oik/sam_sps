@@ -8,7 +8,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 # Package meta-data.
 NAME = 'sam_sps'
-VERSION = '1.0'
+VERSION = '1.0.0'
 AUTHOR = 'Dimitris Oikonomou'
 EMAIL = 'doikono1@jh.edu'
 DESCRIPTION = 'Adaptive Sharpness-Aware Minimization with a Polyak-type Step Size'

@@ -2,7 +2,6 @@
 
 **Adaptive Polyak step sizes for SAM and USAM — match or beat tuned learning rates and Cosine Annealing, with no $\gamma$ tuning.**
 
-[![Preprint](https://img.shields.io/badge/Status-Preprint-lightgrey)](paper.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
@@ -11,7 +10,7 @@
 > **Adaptive Sharpness-Aware Minimization with a Polyak-type Step Size: A Theory-Grounded Scheduler**
 > Dimitris Oikonomou, Nicolas Loizou.
 
-The package provides a single `torch.optim.Optimizer` subclass — `SAM_SPS` — that wraps the **Stochastic Polyak Scheduler**, an adaptive learning-rate rule derived from a Polyak-style upper-bound argument on the SAM update. One parameter $\lambda$ switches between **USAM-SPS** ($\lambda=0$) and **SAM-SPS** ($\lambda=1$) under the same theory and the same code path. The result is a SAM-style optimizer with **closed-form convergence guarantees** (linear for strongly convex, $O(1/T)$ for convex) and **competitive deep-learning performance without learning-rate tuning** — at large sharpness radii $\rho$, it remains stable while Cosine Annealing collapses.
+The package provides a single `torch.optim.Optimizer` subclass — `SAM_SPS` — that wraps the **Stochastic Polyak Scheduler**, an adaptive learning-rate rule derived from a Polyak-style upper-bound argument on the SAM update. One parameter $\lambda$ switches between **USAM-SPS** ($\lambda=0$) and **SAM-SPS** ($\lambda=1$). The result is a SAM-style optimizer with **closed-form convergence guarantees** (linear for strongly convex, $O(1/T)$ for convex) and **competitive deep-learning performance without learning-rate tuning** — at larger sharpness radii $\rho$, it remains stable while Cosine Annealing collapses.
 
 ---
 
@@ -75,23 +74,23 @@ Unlike tuned constant-LR or Cosine-Annealing baselines, **no learning rate needs
 
 ## The algorithm
 
-Each iteration performs an ascent step to the perturbed point $\tilde{e}^t$, then descends from $x^t$ using the gradient at $\tilde{e}^t$ with an adaptive step size:
+Each iteration performs an ascent step to the perturbed point $e^t$, then descends from $x^t$ using the gradient at $e^t$ with an adaptive step size:
 
 **1. Perturbation.** For mini-batch loss $f_{S_t}$ and sharpness radius $\rho$,
 
-$$\tilde{e}^t = x^t + \rho \left( 1 - \lambda + \frac{\lambda}{\\|\nabla f_{S_t}(x^t)\\|} \right) \nabla f_{S_t}(x^t).$$
+$$e^t = x^t + \rho \left( 1 - \lambda + \frac{\lambda}{\|\nabla f_{S_t}(x^t)\|} \right) \nabla f_{S_t}(x^t).$$
 
 Setting $\lambda = 0$ gives **USAM**'s unnormalized perturbation; setting $\lambda = 1$ gives **SAM**'s normalized perturbation.
 
-**2. Stochastic Polyak Scheduler.** The step size minimizes the Polyak-style upper bound on $\\|x^{t+1} - x^*\\|^2$ at the perturbed point, capped by $\gamma_b$:
+**2. Stochastic Polyak Scheduler.** The step size minimizes the Polyak-style upper bound on $\|x^{t+1} - x^*\|^2$ at the perturbed point, capped by $\gamma_b$:
 
-$$\gamma_t = \min\left\\{ \frac{\big[f_{S_t}(\tilde{e}^t) - \ell^*_{S_t} - \langle \nabla f_{S_t}(\tilde{e}^t),\ \tilde{e}^t - x^t \rangle\big]_+}{\\|\nabla f_{S_t}(\tilde{e}^t)\\|^2},\ \gamma_b \right\\}.$$
+$$\gamma_t = \min\left\{ \frac{\big[f_{S_t}(e^t) - \ell^*_{S_t} - \langle \nabla f_{S_t}(e^t),\ e^t - x^t \rangle\big]_+}{\|\nabla f_{S_t}(e^t)\|^2},\ \gamma_b \right\}.$$
 
 **3. Descent.**
 
-$$x^{t+1} = x^t - \gamma_t \nabla f_{S_t}(\tilde{e}^t).$$
+$$x^{t+1} = x^t - \gamma_t \nabla f_{S_t}(e^t).$$
 
-When $\rho = 0$, the rule reduces to the classical Polyak step / SPS$_{\max}$ (Loizou et al., 2021) for SGD. When $\lambda = 0$, the ReLU safeguard $[\cdot]_+$ is provably redundant for smooth convex objectives with $\rho \le 1/L$ (Proposition 2.1).
+When $\rho = 0$, the rule reduces to the classical Polyak step / $\mathrm{SPS}_{\max}$ (Loizou et al., 2021) for SGD. When $\lambda = 0$, the ReLU safeguard $[\cdot]_+$ is provably redundant for smooth convex objectives with $\rho \le 1/L$ (Proposition 2.1).
 
 ### Theoretical guarantees
 
@@ -99,7 +98,7 @@ When $\rho = 0$, the rule reduces to the classical Polyak step / SPS$_{\max}$ (L
 |---|---|---|
 | Strongly convex, smooth (deterministic) | USAM-SPS | linear, exact (Theorem 3.1) |
 | Convex, smooth (deterministic) | USAM-SPS | $O(1/T)$, exact (Theorem 3.2) |
-| Decreasing $\rho_t \downarrow 0$ (deterministic) | USAM-SPS | $\\|\nabla f(x^t)\\| \to 0$ (Theorem 3.4) |
+| Decreasing $\rho_t \downarrow 0$ (deterministic) | USAM-SPS | $\|\nabla f(x^t)\| \to 0$ (Theorem 3.4) |
 | Strongly convex, smooth (stochastic) | USAM-SPS | linear, to a neighborhood (Theorem 3.5) |
 | Convex, smooth (stochastic) | USAM-SPS | $O(1/T)$, to a neighborhood (Theorem 3.8) |
 | Interpolated ($\sigma^2 = 0$) | USAM-SPS | neighborhood collapses; exact convergence (Corollary 3.6) |
@@ -126,7 +125,7 @@ The theory is developed for USAM ($\lambda = 0$) and extends naturally to SAM ($
 | Method | Description |
 |---|---|
 | `step(closure)` | Standard SAM API: performs both passes in one call. `closure` must do a full forward+backward and return the loss. |
-| `first_step(zero_grad=False)` | (Internal) Ascent step to the perturbed point $\tilde{e}^t$. |
+| `first_step(zero_grad=False)` | (Internal) Ascent step to the perturbed point $e^t$. |
 | `second_step(zero_grad=False)` | (Internal) Restore $x^t$, compute $\gamma_t$, then descend. |
 
 In practice you'll only call `step(closure)`. After each call, the active scheduler value is available on `group['lr']` of every parameter group, which makes logging trivial.
@@ -173,8 +172,6 @@ Two key observations:
 
 Full CIFAR-10 / ResNet-20 results and the no-weight-decay ablation are in Appendix E of the paper.
 
-The full paper (theory + extended experiments) is checked into this repository as [`paper.md`](paper.md).
-
 ---
 
 ## Citation
@@ -182,10 +179,11 @@ The full paper (theory + extended experiments) is checked into this repository a
 If you use this code or build on the method, please cite:
 
 ```bibtex
-@article{oikonomou2025samsps,
+@inproceedings{oikonomou2026adaptive,
   title  = {Adaptive Sharpness-Aware Minimization with a Polyak-type Step Size: A Theory-Grounded Scheduler},
   author = {Oikonomou, Dimitris and Loizou, Nicolas},
-  year   = {2025}
+  booktitle = {ICML},
+  year   = {2025},
 }
 ```
 
@@ -194,7 +192,3 @@ If you use this code or build on the method, please cite:
 ## License
 
 Released under the [MIT License](LICENSE).
-
-## Contact
-
-Questions, issues, or contributions are welcome — please open an issue on GitHub or contact [doikono1@jh.edu](mailto:doikono1@jh.edu).
