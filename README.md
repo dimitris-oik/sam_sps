@@ -84,13 +84,13 @@ Setting $\lambda = 0$ gives **USAM**'s unnormalized perturbation; setting $\lamb
 
 **2. Stochastic Polyak Scheduler.** The step size minimizes the Polyak-style upper bound on $\|x^{t+1} - x^*\|^2$ at the perturbed point, capped by $\gamma_b$:
 
-$$\gamma_t = \min\left\{ \frac{\big[f_{S_t}(e^t) - \ell^*_{S_t} - \langle \nabla f_{S_t}(e^t),\ e^t - x^t \rangle\big]_+}{\|\nabla f_{S_t}(e^t)\|^2},\ \gamma_b \right\}.$$
+$$\gamma_t = \min\left\lbrace \frac{\big[f_{S_t}(e^t) - \ell^*_{S_t} - \langle \nabla f_{S_t}(e^t),\ e^t - x^t \rangle\big]_+}{\|\nabla f_{S_t}(e^t)\|^2},\ \gamma_b \right\rbrace.$$
 
 **3. Descent.**
 
 $$x^{t+1} = x^t - \gamma_t \nabla f_{S_t}(e^t).$$
 
-When $\rho = 0$, the rule reduces to the classical Polyak step / $\mathrm{SPS}_{\max}$ (Loizou et al., 2021) for SGD. When $\lambda = 0$, the ReLU safeguard $[\cdot]_+$ is provably redundant for smooth convex objectives with $\rho \le 1/L$ (Proposition 2.1).
+When $\rho = 0$, the rule reduces to the classical Polyak step / $\mathrm{SPS}_{\max}$ (Loizou et al., 2021) for SGD. When $\lambda = 0$, the ReLU safeguard $\max(0, \cdot)$ is provably redundant for smooth convex objectives with $\rho \le 1/L$ (Proposition 2.1).
 
 ### Theoretical guarantees
 
@@ -136,12 +136,18 @@ In practice you'll only call `step(closure)`. After each call, the active schedu
 
 ### Theory validation (synthetic)
 
-The [`numpy_exps/`](numpy_exps/) directory reproduces the §4.1 plots that empirically verify the linear / sublinear rates predicted by Theorems 3.1–3.2 on a strongly convex ridge-regression problem ($n = d = 100$, $\kappa(A) = 10$):
+The [`numpy_exps/`](numpy_exps/) directory reproduces the §4.1 synthetic experiments on a strongly convex ridge-regression problem ($n = d = 100$, $\kappa(A) = 10$). Each is run in two regimes — **deterministic** (full-batch, interpolated) and **stochastic** (mini-batch, regularized) — and produces two kinds of comparison in each regime:
+
+- **Theory comparison** — the Polyak Scheduler against prior USAM step-size schedules (Andriushchenko & Flammarion 2022; Khanh et al.; Oikonomou et al.), empirically confirming the linear / $O(1/T)$ rates predicted by Theorems 3.1–3.2.
+- **Adaptive comparison** — the Polyak Scheduler against adaptive-learning-rate SAM optimizers (AdaSAM, LightSAM-I/II/III, SA-SAM).
+
+Files:
 
 - [`numpy_exps/loss.py`](numpy_exps/loss.py) — `RidgeRegression` objective with controllable conditioning.
 - [`numpy_exps/methods.py`](numpy_exps/methods.py) — `Unified_SAM` (constant step-size baseline), `Unified_SAM_SPS` (deterministic Polyak Scheduler), `Unified_SAM_SPS_max` (Stochastic Polyak Scheduler), and the `USAM_andr` baseline (Andriushchenko & Flammarion, 2022).
+- [`numpy_exps/methods_ada.py`](numpy_exps/methods_ada.py) — adaptive-LR SAM baselines: `AdaSAM`, `LightSAM_I` (AdaGrad-Norm), `LightSAM_II` (AdaGrad), `LightSAM_III` (Adam), and `SA_SAM`.
 - [`numpy_exps/exps.ipynb`](numpy_exps/exps.ipynb) — figure-generation notebook.
-- [`numpy_exps/figures/`](numpy_exps/figures/) — the two output PDFs.
+- [`numpy_exps/figures/`](numpy_exps/figures/) — the four output PDFs (`usam_theory_det`, `usam_theory_stoch`, `ada_comparison_det`, `ada_comparison_stoch`).
 
 ### Deep-learning results
 
@@ -167,7 +173,7 @@ Test accuracy of `SAM_SPS` with ResNet-32 on **CIFAR-100**, varying the sharpnes
 
 Two key observations:
 
-1. **No tuning, best accuracy.** SAM-SPS / USAM-SPS beat both the per-$\rho$ tuned constant learning rate and Cosine Annealing at every radius.
+1. **No tuning, best accuracy.** SAM-SPS / USAM-SPS beat both the constant learning rate tuned per $\rho$ and Cosine Annealing at every radius.
 2. **Robustness at large $\rho$.** Cosine Annealing degrades sharply as $\rho$ grows (CIFAR-100, $\rho = 0.4$: USAM Cosine drops to 86.52, SAM Cosine to 84.61), while the Polyak Scheduler stays above 90.7 in both columns.
 
 Full CIFAR-10 / ResNet-20 results and the no-weight-decay ablation are in Appendix E of the paper.
