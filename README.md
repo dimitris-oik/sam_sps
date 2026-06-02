@@ -3,6 +3,7 @@
 **Adaptive Polyak step sizes for SAM and USAM — match or beat tuned learning rates and Cosine Annealing, with no $\gamma$ tuning.**
 
 [![PyPI version](https://img.shields.io/pypi/v/sam_sps.svg)](https://pypi.org/project/sam_sps/)
+[![arXiv](https://img.shields.io/badge/arXiv-2606.01827-b31b1b.svg)](https://arxiv.org/abs/2606.01827)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
